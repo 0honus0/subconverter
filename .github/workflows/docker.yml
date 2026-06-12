@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  REGISTRY_IMAGE: 0honus0/subconverter
+  REGISTRY_IMAGE: ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}
 
 jobs:
   build:
