@@ -1,0 +1,10 @@
+version: "1"
+rules:
+  - base: master
+    upstream: asdlokj1qpi233:master
+    mergeMethod: merge
+    mergeUnstable: false
+    conflictReviewers:
+      - 0honus0
+label: ":arrow_heading_down: pull"
+conflictLabel: "merge-conflict"
