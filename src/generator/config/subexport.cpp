@@ -1801,6 +1801,18 @@ void proxyToQuanX(std::vector<Proxy> &nodes, INIReader &ini, std::vector<Ruleset
         scv.define(x.AllowInsecure);
         tls13.define(x.TLS13);
 
+        auto appendQuanXOverTLS = [&](bool enabled, const std::string &tlsHost, bool emitFalse = false) {
+            if (enabled) {
+                proxyStr += ", over-tls=true";
+                if (!tlsHost.empty())
+                    proxyStr += ", tls-host=" + tlsHost;
+                if (!tls13.is_undef())
+                    proxyStr += ", tls13=" + std::string(tls13 ? "true" : "false");
+            } else if (emitFalse) {
+                proxyStr += ", over-tls=false";
+            }
+        };
+
         switch (x.Type) {
             case ProxyType::VMess:
                 if (method == "auto")
@@ -1918,28 +1930,15 @@ void proxyToQuanX(std::vector<Proxy> &nodes, INIReader &ini, std::vector<Ruleset
                 proxyStr =
                         "http = " + hostname + ":" + port + ", username=" + (username.empty() ? "none" : username) +
                         ", password=" + (password.empty() ? "none" : password);
-                if (tlssecure) {
-                    proxyStr += ", over-tls=true";
-                    if (!tls13.is_undef())
-                        proxyStr += ", tls13=" + std::string(tls13 ? "true" : "false");
-                } else {
-                    proxyStr += ", over-tls=false";
-                }
+                appendQuanXOverTLS(tlssecure, "", true);
                 break;
             case ProxyType::Trojan:
                 proxyStr = "trojan = " + hostname + ":" + port + ", password=" + password;
-                if (tlssecure) {
-                    proxyStr += ", over-tls=true, tls-host=" + host;
-                    if (!tls13.is_undef())
-                        proxyStr += ", tls13=" + std::string(tls13 ? "true" : "false");
-                } else {
-                    proxyStr += ", over-tls=false";
-                }
+                appendQuanXOverTLS(tlssecure, !sni.empty() ? sni : host, true);
                 break;
             case ProxyType::AnyTLS:
                 proxyStr = "anytls = " + hostname + ":" + port + ", password=" + password;
-                if (!x.SNI.empty())
-                    proxyStr += ", tls-host=" + x.SNI;
+                appendQuanXOverTLS(true, x.SNI);
                 if (!x.Fingerprint.empty())
                     proxyStr += ", server-cert-fingerprint-sha256=" + x.Fingerprint;
                 if (!scv.is_undef())
@@ -1947,16 +1946,9 @@ void proxyToQuanX(std::vector<Proxy> &nodes, INIReader &ini, std::vector<Ruleset
                 break;
             case ProxyType::SOCKS5:
                 proxyStr = "socks5 = " + hostname + ":" + port;
-                if (!username.empty() && !password.empty()) {
+                if (!username.empty() && !password.empty())
                     proxyStr += ", username=" + username + ", password=" + password;
-                    if (tlssecure) {
-                        proxyStr += ", over-tls=true, tls-host=" + host;
-                        if (!tls13.is_undef())
-                            proxyStr += ", tls13=" + std::string(tls13 ? "true" : "false");
-                    } else {
-                        proxyStr += ", over-tls=false";
-                    }
-                }
+                appendQuanXOverTLS(tlssecure, !sni.empty() ? sni : host, true);
                 break;
             default:
                 continue;
