@@ -1936,6 +1936,15 @@ void proxyToQuanX(std::vector<Proxy> &nodes, INIReader &ini, std::vector<Ruleset
                     proxyStr += ", over-tls=false";
                 }
                 break;
+            case ProxyType::AnyTLS:
+                proxyStr = "anytls = " + hostname + ":" + port + ", password=" + password;
+                if (!x.SNI.empty())
+                    proxyStr += ", tls-host=" + x.SNI;
+                if (!x.Fingerprint.empty())
+                    proxyStr += ", server-cert-fingerprint-sha256=" + x.Fingerprint;
+                if (!scv.is_undef())
+                    proxyStr += ", tls-verification=" + scv.reverse().get_str();
+                break;
             case ProxyType::SOCKS5:
                 proxyStr = "socks5 = " + hostname + ":" + port;
                 if (!username.empty() && !password.empty()) {
