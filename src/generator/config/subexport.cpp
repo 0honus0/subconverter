@@ -1938,8 +1938,11 @@ void proxyToQuanX(std::vector<Proxy> &nodes, INIReader &ini, std::vector<Ruleset
                 break;
             case ProxyType::AnyTLS:
                 proxyStr = "anytls = " + hostname + ":" + port + ", password=" + password;
+                proxyStr += ", over-tls=true";
                 if (!x.SNI.empty())
                     proxyStr += ", tls-host=" + x.SNI;
+                if (!tls13.is_undef())
+                    proxyStr += ", tls13=" + std::string(tls13 ? "true" : "false");
                 if (!x.Fingerprint.empty())
                     proxyStr += ", server-cert-fingerprint-sha256=" + x.Fingerprint;
                 if (!scv.is_undef())
